@@ -1,0 +1,37 @@
+# Hur du undersöker och förstår ett befintligt system.
+
+Går igenom lite översiktligt flödet frontend till backend då jag inte skrivit så mycket Java.  
+Så lite kul där för mig personligen.
+
+För att få en helhetsbild av befintlig funktionalitet bad jag Claude göra lite excalidraw filer med:
+
+> "i want the simple flow of the actions and the endpoints available, the overall logic of this app. Focus on the roles system"
+
+Resultat i `dinso-roles-flow.excalidraw`.
+
+# Hur du delar upp uppgiften och implementationen.
+
+## steg 1: Planera och bestäm arkitektur.
+
+prompt:
+
+> "so the plan is to switch from a "role" based system to a more granular "permission" based system, these are the permissions: now, make me a plan and visualize in excalidraw how this would work. Note: we keep some roles, since the SYSTEM_ADMIN role should be able to tweak a demo users permissions. Make me a plan, and make an excalidraw for this new permission based system "
+
+bestämde mig för en "per-company" modell, för användare kan rimligen ha olika permissions per anställning
+
+vi har kvar 2 roller som vi behöver
+
+När denna logik är på plats så behöver vi GUI'n för att lägga upp behörigheter.
+
+```java
+public enum DemoRole {
+PRIVATE_CUSTOMER,
+SYSTEM_ADMIN
+}
+```
+
+# Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
+
+- Motivera dina val av lösningar till uppgifterna.
+
+# Hur du avgör att lösningen är klar för granskning.
