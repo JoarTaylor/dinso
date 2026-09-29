@@ -5,9 +5,14 @@ import java.math.BigDecimal;
 import java.time.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.EnumSet;
+import java.util.Set;
 import se.meepo.dinso.database.entity.*;
 import se.meepo.dinso.database.repository.DemoProfileRepository;
 import se.meepo.dinso.service.CustomerId;
+import se.meepo.dinso.service.DemoPermission;
+import se.meepo.dinso.service.DemoRole;
+import se.meepo.dinso.service.PortalType;
 
 @Component
 public class DemoDataSeeder {
@@ -80,7 +85,7 @@ public class DemoDataSeeder {
         .getResultStream()
         .findFirst()
         .ifPresent(profile::assignPerson);
-    if (profile.getRole() == se.meepo.dinso.service.DemoRole.SYSTEM_ADMIN
+    if (profile.getRole() == DemoRole.SYSTEM_ADMIN
         && entities
                 .createQuery(
                     "select count(a) from CompanyAuthorizationEntity a where a.profile = :profile",
@@ -96,7 +101,7 @@ public class DemoDataSeeder {
           .forEach(
               company ->
                   entities.persist(
-                      new CompanyAuthorizationEntity(profile, company, profile.getRole())));
+                      new CompanyAuthorizationEntity(profile, company, allPermissions())));
   }
 
   private void seedPrivateInsuranceData(
@@ -163,15 +168,16 @@ public class DemoDataSeeder {
     profiles.findByCustomerId(customer).stream()
         .filter(
             profile ->
-                profile.getPortal().name().equals("COMPANY")
-                    || profile.getRole() == se.meepo.dinso.service.DemoRole.SYSTEM_ADMIN)
+                profile.getPortal() == PortalType.COMPANY
+                    || profile.getRole() == DemoRole.SYSTEM_ADMIN)
         .forEach(
             profile -> {
-              entities.persist(new CompanyAuthorizationEntity(profile, primary, profile.getRole()));
+              var permissions = defaultPermissions(profile);
+              entities.persist(new CompanyAuthorizationEntity(profile, primary, permissions));
               if (profile.getExternalId().endsWith("-multi")
-                  || profile.getRole() == se.meepo.dinso.service.DemoRole.SYSTEM_ADMIN)
+                  || profile.getRole() == DemoRole.SYSTEM_ADMIN)
                 entities.persist(
-                    new CompanyAuthorizationEntity(profile, secondary, profile.getRole()));
+                    new CompanyAuthorizationEntity(profile, secondary, permissions));
             });
   }
 
@@ -300,5 +306,18 @@ public class DemoDataSeeder {
       case 2 -> "LEAVE";
       default -> "ENDED";
     };
+  }
+
+  private static Set<DemoPermission> defaultPermissions(DemoProfileEntity profile) {
+    if (profile.getRole() == DemoRole.SYSTEM_ADMIN) return allPermissions();
+    // viewer profiles (external id ends with -viewer) get read-only access
+    if (profile.getExternalId().endsWith("-viewer"))
+      return Set.of(DemoPermission.READ_INFORMATION);
+    // all other company portal profiles get full permissions
+    return allPermissions();
+  }
+
+  private static Set<DemoPermission> allPermissions() {
+    return EnumSet.allOf(DemoPermission.class);
   }
 }

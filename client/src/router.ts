@@ -1,6 +1,7 @@
 import { defineComponent } from 'vue'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import PortalView from './views/PortalView.vue'
+import type { Permission } from './data/customer'
 
 export type Page =
   | 'overview'
@@ -19,6 +20,7 @@ declare module 'vue-router' {
     page?: Page
     portal?: PortalRoute
     roles?: string[]
+    permissions?: Permission[]
   }
 }
 
@@ -72,7 +74,7 @@ const routes: RouteRecordRaw[] = [
     path: '/foretag/medarbetare/lagg-till',
     name: 'company-add-employee',
     component: PortalView,
-    meta: { portal: 'COMPANY', page: 'add-employee', roles: ['COMPANY_ADMIN'] },
+    meta: { portal: 'COMPANY', page: 'add-employee', permissions: ['ADD_EMPLOYEES'] },
   },
   {
     path: '/foretag/avtal',

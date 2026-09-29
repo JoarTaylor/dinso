@@ -1,7 +1,9 @@
 package se.meepo.dinso.database.entity;
 
 import jakarta.persistence.*;
-import se.meepo.dinso.service.DemoRole;
+import java.util.EnumSet;
+import java.util.Set;
+import se.meepo.dinso.service.DemoPermission;
 
 @Entity
 @Table(name = "company_authorization")
@@ -16,24 +18,39 @@ public class CompanyAuthorizationEntity {
   @ManyToOne(optional = false)
   private CompanyEntity company;
 
+  @ElementCollection(fetch = FetchType.EAGER)
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private DemoRole role;
+  @CollectionTable(
+      name = "company_authorization_permissions",
+      joinColumns = @JoinColumn(name = "authorization_id"))
+  @Column(name = "permission")
+  private Set<DemoPermission> permissions;
 
   protected CompanyAuthorizationEntity() {}
 
   public CompanyAuthorizationEntity(
-      DemoProfileEntity profile, CompanyEntity company, DemoRole role) {
+      DemoProfileEntity profile, CompanyEntity company, Set<DemoPermission> permissions) {
     this.profile = profile;
     this.company = company;
-    this.role = role;
+    this.permissions = EnumSet.copyOf(permissions.isEmpty() ? EnumSet.noneOf(DemoPermission.class) : permissions);
+  }
+
+  public DemoProfileEntity getProfile() {
+    return profile;
   }
 
   public CompanyEntity getCompany() {
     return company;
   }
 
-  public DemoRole getRole() {
-    return role;
+  public Set<DemoPermission> getPermissions() {
+    return permissions;
+  }
+
+  public void setPermissions(Set<DemoPermission> permissions) {
+    this.permissions =
+        permissions.isEmpty()
+            ? java.util.EnumSet.noneOf(DemoPermission.class)
+            : java.util.EnumSet.copyOf(permissions);
   }
 }

@@ -3,6 +3,7 @@ package se.meepo.dinso.api;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -24,28 +25,28 @@ public class CompanyPortalController {
 
   @GetMapping("/companies")
   java.util.List<CompanyPortalDataService.Company> companies(HttpServletRequest request) {
-    return data.companies(current(request, false));
+    return data.companies(current(request));
   }
 
   @GetMapping("/overview")
   CompanyPortalDataService.Overview overview(
       HttpServletRequest request,
       @RequestParam(name = "companyId", required = false) String companyId) {
-    return data.overview(current(request, false), companyId);
+    return data.overview(current(request), companyId);
   }
 
   @GetMapping("/plans")
   java.util.List<CompanyPortalDataService.Plan> plans(
       HttpServletRequest request,
       @RequestParam(name = "companyId", required = false) String companyId) {
-    return data.plans(current(request, false), companyId);
+    return data.plans(current(request), companyId);
   }
 
   @GetMapping("/cases")
   java.util.List<CompanyPortalDataService.Case> cases(
       HttpServletRequest request,
       @RequestParam(name = "companyId", required = false) String companyId) {
-    return data.cases(current(request, false), companyId);
+    return data.cases(current(request), companyId);
   }
 
   @PutMapping("/cases/{caseId}/approve")
@@ -53,7 +54,9 @@ public class CompanyPortalController {
       HttpServletRequest request,
       @PathVariable("caseId") String caseId,
       @RequestParam(name = "companyId", required = false) String companyId) {
-    return data.approveCase(current(request, true), companyId, caseId);
+    var profile = current(request);
+    requirePermission(profile, companyId, DemoPermission.APPROVE_CASES);
+    return data.approveCase(profile, companyId, caseId);
   }
 
   @GetMapping("/employments")
@@ -61,7 +64,7 @@ public class CompanyPortalController {
       HttpServletRequest request,
       @RequestParam(name = "companyId", required = false) String companyId,
       @RequestParam(name = "query", required = false) String query) {
-    return data.employments(current(request, false), companyId, query);
+    return data.employments(current(request), companyId, query);
   }
 
   @GetMapping("/employments/{employmentId}")
@@ -69,7 +72,7 @@ public class CompanyPortalController {
       HttpServletRequest request,
       @PathVariable("employmentId") String employmentId,
       @RequestParam(name = "companyId", required = false) String companyId) {
-    return data.employment(current(request, false), companyId, employmentId);
+    return data.employment(current(request), companyId, employmentId);
   }
 
   @PostMapping("/employees")
@@ -78,13 +81,9 @@ public class CompanyPortalController {
       HttpServletRequest request,
       @RequestParam(name = "companyId", required = false) String companyId,
       @RequestBody EmployeeRequest input) {
-    return data.addEmployee(
-        current(request, true),
-        companyId,
-        input.name(),
-        input.planId(),
-        input.salary(),
-        input.startsOn());
+    var profile = current(request);
+    requirePermission(profile, companyId, DemoPermission.ADD_EMPLOYEES);
+    return data.addEmployee(profile, companyId, input.name(), input.planId(), input.salary(), input.startsOn());
   }
 
   @PutMapping("/employments/{employmentId}/salary")
@@ -93,7 +92,9 @@ public class CompanyPortalController {
       @PathVariable("employmentId") String employmentId,
       @RequestParam(name = "companyId", required = false) String companyId,
       @RequestBody SalaryRequest input) {
-    return data.changeSalary(current(request, true), companyId, employmentId, input.salary());
+    var profile = current(request);
+    requirePermission(profile, companyId, DemoPermission.CHANGE_SALARY);
+    return data.changeSalary(profile, companyId, employmentId, input.salary());
   }
 
   @PutMapping("/employments/{employmentId}/leave")
@@ -102,8 +103,9 @@ public class CompanyPortalController {
       @PathVariable("employmentId") String employmentId,
       @RequestParam(name = "companyId", required = false) String companyId,
       @RequestBody LeaveRequest input) {
-    return data.registerLeave(
-        current(request, true), companyId, employmentId, input.reason(), input.until());
+    var profile = current(request);
+    requirePermission(profile, companyId, DemoPermission.REGISTER_LEAVE_OF_ABSENCE);
+    return data.registerLeave(profile, companyId, employmentId, input.reason(), input.until());
   }
 
   @PutMapping("/employments/{employmentId}/end")
@@ -112,16 +114,22 @@ public class CompanyPortalController {
       @PathVariable("employmentId") String employmentId,
       @RequestParam(name = "companyId", required = false) String companyId,
       @RequestBody EndRequest input) {
-    return data.endEmployment(current(request, true), companyId, employmentId, input.endsOn());
+    var profile = current(request);
+    requirePermission(profile, companyId, DemoPermission.TERMINATE_EMPLOYMENT);
+    return data.endEmployment(profile, companyId, employmentId, input.endsOn());
   }
 
-  private DemoProfile current(HttpServletRequest request, boolean write) {
+  private DemoProfile current(HttpServletRequest request) {
     var profile = sessions.requireActive(token(request));
-    if ((profile.portal() != PortalType.COMPANY && profile.role() != DemoRole.SYSTEM_ADMIN)
-        || (write
-            && profile.role() != DemoRole.COMPANY_ADMIN
-            && profile.role() != DemoRole.SYSTEM_ADMIN)) throw new Forbidden();
+    if (profile.portal() != PortalType.COMPANY && profile.role() != DemoRole.SYSTEM_ADMIN)
+      throw new Forbidden();
     return profile;
+  }
+
+  private void requirePermission(DemoProfile profile, String companyId, DemoPermission permission) {
+    if (profile.role() == DemoRole.SYSTEM_ADMIN) return;
+    Set<DemoPermission> permissions = data.permissionsFor(profile, companyId);
+    if (!permissions.contains(permission)) throw new Forbidden();
   }
 
   private static String token(HttpServletRequest request) {

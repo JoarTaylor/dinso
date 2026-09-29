@@ -6,6 +6,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import se.meepo.dinso.database.entity.*;
@@ -44,11 +45,22 @@ public class CompanyPortalDataService {
     this.entities = entities;
   }
 
+  public Set<DemoPermission> permissionsFor(DemoProfile profile, String companyId) {
+    return authorizations(profile).stream()
+        .filter(a -> a.getCompany().getId().equals(companyId))
+        .map(CompanyAuthorizationEntity::getPermissions)
+        .findFirst()
+        .orElse(Set.of());
+  }
+
   public List<Company> companies(DemoProfile profile) {
     return authorizations(profile).stream()
         .map(
             item ->
-                new Company(item.getCompany().getId(), item.getCompany().getName(), item.getRole()))
+                new Company(
+                    item.getCompany().getId(),
+                    item.getCompany().getName(),
+                    item.getPermissions()))
         .toList();
   }
 
@@ -255,7 +267,7 @@ public class CompanyPortalDataService {
     entities.persist(new DemoEventEntity(profile.customerId(), clock.instant(), type, summary));
   }
 
-  public record Company(String id, String name, DemoRole role) {}
+  public record Company(String id, String name, Set<DemoPermission> permissions) {}
 
   public record Overview(
       String companyId, String companyName, long employees, long plans, int openCases) {}

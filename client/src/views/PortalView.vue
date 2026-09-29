@@ -6,6 +6,7 @@ import { activeLocale, translate } from '../i18n'
 import { statusTone } from '../data/status'
 import { useDemoSessionStore } from '../stores/demoSession'
 import { useDemoPortalStore } from '../stores/demoPortal'
+import type { Permission } from '../data/customer'
 import OverviewView from './OverviewView.vue'
 import InsuranceView from './InsuranceView.vue'
 import EmployeesView from './EmployeesView.vue'
@@ -102,20 +103,90 @@ const caseModalLabels = computed(() => ({
 const activityPage = computed(
   () => page.value as 'events' | 'documents' | 'payments',
 )
-const companyAdmins = computed(() =>
+const useApi = import.meta.env.VITE_USE_API === 'true'
+const apiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? ''
+
+type ProfilePermissions = {
+  profileId: string
+  name: string
+  companies: Array<{ companyId: string; companyName: string; permissions: Permission[] }>
+}
+
+const companyProfiles = ref<ProfilePermissions[]>(
   customer.profiles
-    .filter((item) => item.role === 'COMPANY_ADMIN')
+    .filter((item) => item.portal === 'COMPANY')
     .map((item) => ({
+      profileId: item.id,
       name: item.name,
-      companies:
-        (item.companies?.length
-          ? item.companies
-          : item.company
-            ? [item.company]
-            : []
-        ).join(', ') || t('Inga företag kopplade'),
+      companies: (item.companies?.length
+        ? item.companies
+        : item.company
+          ? [item.company]
+          : []
+      ).map((name) => ({
+        companyId: name,
+        companyName: name,
+        permissions: (item.permissions ?? []) as Permission[],
+      })),
     })),
 )
+
+const companyAdmins = computed(() =>
+  companyProfiles.value.map((item) => ({
+    name: item.name,
+    companies: item.companies.map((c) => c.companyName).join(', ') || t('Inga företag kopplade'),
+  })),
+)
+
+const savePermissions = async (
+  profileId: string,
+  companyId: string,
+  permissions: Permission[],
+): Promise<void> => {
+  const profile = companyProfiles.value.find((p) => p.profileId === profileId)
+  if (!profile) return
+  const company = profile.companies.find((c) => c.companyId === companyId)
+  if (company) company.permissions = permissions
+  if (useApi && session.sessionToken) {
+    await fetch(
+      `${apiUrl}/api/system/profiles/${encodeURIComponent(profileId)}/companies/${encodeURIComponent(companyId)}/permissions`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${session.sessionToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ permissions }),
+      },
+    ).catch(() => undefined)
+  }
+}
+
+const loadSystemProfiles = async (): Promise<void> => {
+  if (!useApi || !session.sessionToken) return
+  try {
+    const response = await fetch(`${apiUrl}/api/system/profiles`, {
+      headers: { Authorization: `Bearer ${session.sessionToken}` },
+    })
+    if (!response.ok) return
+    const data = (await response.json()) as Array<{
+      profileId: string
+      name: string
+      companies: Array<{ companyId: string; companyName: string; permissions: string[] }>
+    }>
+    companyProfiles.value = data.map((p) => ({
+      profileId: p.profileId,
+      name: p.name,
+      companies: p.companies.map((c) => ({
+        companyId: c.companyId,
+        companyName: c.companyName,
+        permissions: c.permissions as Permission[],
+      })),
+    }))
+  } catch {
+    // silently ignore
+  }
+}
 const navigate = (target: 'insurance' | 'cases'): void => {
   void router.push({
     name: target === 'insurance' ? 'private-insurance' : 'company-cases',
@@ -129,7 +200,9 @@ const approveSelectedCase = async (): Promise<void> => {
   selectedCase.value = null
 }
 onMounted(() => {
-  void (session.isCompany ? portal.loadCompanyData() : portal.loadFundAllocation())
+  if (session.isCompany) void portal.loadCompanyData()
+  else if (session.activePortal === 'SYSTEM') void loadSystemProfiles()
+  else void portal.loadFundAllocation()
 })
 
 const finishEmployee = async (draft: {
@@ -149,10 +222,12 @@ const finishEmployee = async (draft: {
     v-if="session.activePortal === 'SYSTEM'"
     :title="t('Systemadmin')"
     :description="systemAdminDescription"
-    :panel-title="t('Företagsadministratörer')"
+    :panel-title="t('Företagsanvändare')"
     :panel-description="systemAdminPanelDescription"
     :rows="companyAdmins"
+    :company-profiles="companyProfiles"
     :t="t"
+    @save-permissions="savePermissions($event.profileId, $event.companyId, $event.permissions)"
   />
   <OverviewView
     v-else-if="page === 'overview'"

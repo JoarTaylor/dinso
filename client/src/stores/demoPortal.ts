@@ -31,7 +31,7 @@ type PrivateOverview = {
 type InsuranceDetail = {
   fundHoldings: { fundName: string; allocationPercent: string }[]
 }
-type Company = { id: string; name: string }
+type Company = { id: string; name: string; permissions: string[] }
 type CompanyEmployment = {
   id: string
   personName: string

@@ -1,9 +1,9 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import customer from '@customer/config'
-import type { Portal, Profile } from '../data/customer'
+import type { Permission, Portal, Profile } from '../data/customer'
 
-type Company = { id: string; name: string }
+type Company = { id: string; name: string; permissions: Permission[] }
 
 type StoredSession = {
   profileId: string
@@ -56,7 +56,13 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
       : '',
   )
   const companies = ref<Company[]>(
-    canRestore ? (storedProfile.companies ?? []).map((name) => ({ id: name, name })) : [],
+    canRestore
+      ? (storedProfile.companies ?? []).map((name) => ({
+          id: name,
+          name,
+          permissions: storedProfile.permissions ?? [],
+        }))
+      : [],
   )
 
   const persist = (): void => {
@@ -78,16 +84,46 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
     () => profile.value?.portal ?? null,
   )
   const isCompany = computed<boolean>(() => activePortal.value === 'COMPANY')
+
+  const activeCompany = computed<Company | null>(
+    () =>
+      companies.value.find((c) => c.id === companyId.value) ??
+      companies.value[0] ??
+      null,
+  )
+
+  const activePermissions = computed<Permission[]>(
+    () =>
+      profile.value?.role === 'SYSTEM_ADMIN'
+        ? (['READ_INFORMATION', 'APPROVE_CASES', 'ADD_EMPLOYEES', 'CHANGE_SALARY', 'REGISTER_LEAVE_OF_ABSENCE', 'TERMINATE_EMPLOYMENT'] as Permission[])
+        : (activeCompany.value?.permissions ?? profile.value?.permissions ?? []),
+  )
+
+  const hasPermission = (permission: Permission): boolean =>
+    activePermissions.value.includes(permission)
+
   const canManageCompany = computed<boolean>(
     () =>
-      profile.value?.role === 'COMPANY_ADMIN' ||
-      profile.value?.role === 'SYSTEM_ADMIN',
+      hasPermission('APPROVE_CASES') ||
+      hasPermission('ADD_EMPLOYEES') ||
+      hasPermission('CHANGE_SALARY') ||
+      hasPermission('REGISTER_LEAVE_OF_ABSENCE') ||
+      hasPermission('TERMINATE_EMPLOYMENT'),
   )
-  const canApproveCases = computed<boolean>(() => canManageCompany.value)
+  const canApproveCases = computed<boolean>(() => hasPermission('APPROVE_CASES'))
+  const canAddEmployees = computed<boolean>(() => hasPermission('ADD_EMPLOYEES'))
+  const canChangeSalary = computed<boolean>(() => hasPermission('CHANGE_SALARY'))
+  const canRegisterLeave = computed<boolean>(() => hasPermission('REGISTER_LEAVE_OF_ABSENCE'))
+  const canTerminateEmployment = computed<boolean>(() => hasPermission('TERMINATE_EMPLOYMENT'))
+
   const availableCompanies = computed<Company[]>(() =>
     companies.value.length > 0
       ? companies.value
-      : (profile.value?.companies ?? []).map((name) => ({ id: name, name })),
+      : (profile.value?.companies ?? []).map((name) => ({
+          id: name,
+          name,
+          permissions: profile.value?.permissions ?? [],
+        })),
   )
   const selectedCompanyName = computed<string>(
     () => companyName.value || profile.value?.company || '',
@@ -106,6 +142,7 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
     companies.value = (selectedProfile.companies ?? []).map((name) => ({
       id: name,
       name,
+      permissions: selectedProfile.permissions ?? [],
     }))
     persist()
   }
@@ -149,8 +186,14 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
     companies,
     activePortal,
     isCompany,
+    activePermissions,
+    hasPermission,
     canManageCompany,
     canApproveCases,
+    canAddEmployees,
+    canChangeSalary,
+    canRegisterLeave,
+    canTerminateEmployment,
     availableCompanies,
     selectedCompanyName,
     start,

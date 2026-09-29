@@ -3,6 +3,7 @@ package se.meepo.dinso.springconfig;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,11 +31,14 @@ public class DemoJwtAuthenticationFilter extends OncePerRequestFilter {
     }
     try {
       var profile = sessions.requireActive(authorization.substring(7));
+      var authorities = new ArrayList<SimpleGrantedAuthority>();
+      if (profile.role() != null) {
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + profile.role().name()));
+      } else {
+        authorities.add(new SimpleGrantedAuthority("ROLE_COMPANY_USER"));
+      }
       var authentication =
-          UsernamePasswordAuthenticationToken.authenticated(
-              profile,
-              null,
-              java.util.List.of(new SimpleGrantedAuthority("ROLE_" + profile.role().name())));
+          UsernamePasswordAuthenticationToken.authenticated(profile, null, authorities);
       SecurityContextHolder.getContext().setAuthentication(authentication);
       chain.doFilter(request, response);
     } catch (SecurityException exception) {

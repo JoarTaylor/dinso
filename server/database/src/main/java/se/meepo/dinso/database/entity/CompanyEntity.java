@@ -41,4 +41,8 @@ public class CompanyEntity {
   public CustomerId getCustomerId() {
     return customerId;
   }
+
+  public String getExternalId() {
+    return externalId;
+  }
 }

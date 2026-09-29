@@ -93,10 +93,9 @@ const loginProfiles = computed(() =>
 )
 const loginLabels = computed(() => ({
   heading: t('Välj person och portal'),
-  intro: t(
-    'Välj den person och portal du vill arbeta i.',
-    { customer: customer.name },
-  ),
+  intro: t('Välj den person och portal du vill arbeta i.', {
+    customer: customer.name,
+  }),
   switchHint: t('Du kan byta portal eller person genom att logga ut.'),
   portalQuestion: t('Vilken portal vill du logga in i?'),
   portalLabel: t('Välj portal'),
@@ -139,18 +138,18 @@ const nav = computed<[string, string][]>(() =>
         ],
 )
 const activePage = computed(() =>
-  route.meta.page === 'add-employee' ? 'employees' : (route.meta.page ?? 'overview'),
+  route.meta.page === 'add-employee'
+    ? 'employees'
+    : (route.meta.page ?? 'overview'),
 )
 
 const roleLabel = (item: Profile): string =>
   t(
     item.role === 'SYSTEM_ADMIN'
       ? 'Systemadministratör'
-      : item.role === 'COMPANY_VIEWER'
-        ? 'Läsbehörighet'
-        : item.role === 'COMPANY_ADMIN'
-          ? 'Företagsadmin'
-          : 'Privatkund',
+      : item.portal === 'COMPANY'
+        ? `${item.permissions.length} behörigheter`
+        : 'Privatkund',
   )
 const selectPage = (page: string): void => {
   const routeName = session.activePortal
@@ -216,12 +215,19 @@ watch(
     if (!profile || route.name === 'login') return
     const portal = route.meta.portal
     const allowedPortals = profile.portals ?? [profile.portal]
+    const roleBlocked =
+      route.meta.roles &&
+      profile.role !== 'SYSTEM_ADMIN' &&
+      !route.meta.roles.includes(profile.role ?? '')
+    const permissionBlocked =
+      route.meta.permissions &&
+      profile.role !== 'SYSTEM_ADMIN' &&
+      !route.meta.permissions.some((p) => session.hasPermission(p))
     if (
       !portal ||
       !allowedPortals.includes(portal) ||
-      (route.meta.roles &&
-        !route.meta.roles.includes(profile.role) &&
-        profile.role !== 'SYSTEM_ADMIN')
+      roleBlocked ||
+      permissionBlocked
     )
       void router.replace({
         name: routeNames[session.activePortal ?? 'PRIVATE'].overview,
@@ -265,11 +271,7 @@ watch(selectedProfileId, () => {
       @select-company="selectCompany"
     />
     <main id="mainContent" class="shell" tabindex="-1">
-      <PortalNav
-        :items="nav"
-        :active="activePage"
-        @select="selectPage"
-      />
+      <PortalNav :items="nav" :active="activePage" @select="selectPage" />
       <RouterView />
       <div v-if="customer.locales.length > 1" class="language-switch">
         <label for="language">{{ t('Språk') }}</label>
@@ -288,6 +290,7 @@ watch(selectedProfileId, () => {
   margin: auto;
   padding: var(--space-shell-padding, 32px 24px 72px);
 }
+
 .language-switch {
   display: flex;
   align-items: center;
@@ -296,6 +299,7 @@ watch(selectedProfileId, () => {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
 .language-switch select {
   border: 1px solid var(--border);
   border-radius: var(--radius-control);

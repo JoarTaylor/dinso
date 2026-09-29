@@ -7,4 +7,7 @@ import se.meepo.dinso.database.entity.*;
 public interface CompanyAuthorizationRepository
     extends JpaRepository<CompanyAuthorizationEntity, String> {
   List<CompanyAuthorizationEntity> findByProfile(DemoProfileEntity profile);
+
+  Optional<CompanyAuthorizationEntity> findByProfileAndCompany(
+      DemoProfileEntity profile, CompanyEntity company);
 }

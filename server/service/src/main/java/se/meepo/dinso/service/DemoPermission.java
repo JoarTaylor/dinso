@@ -1,0 +1,10 @@
+package se.meepo.dinso.service;
+
+public enum DemoPermission {
+  READ_INFORMATION,
+  APPROVE_CASES,
+  ADD_EMPLOYEES,
+  CHANGE_SALARY,
+  REGISTER_LEAVE_OF_ABSENCE,
+  TERMINATE_EMPLOYMENT
+}

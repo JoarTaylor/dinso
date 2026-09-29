@@ -1,6 +1,7 @@
 package se.meepo.dinso.database.entity;
 
 import jakarta.persistence.*;
+import java.util.Set;
 import se.meepo.dinso.service.*;
 
 @Entity
@@ -24,7 +25,7 @@ public class DemoProfileEntity {
   private PortalType portal;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = true)
   private DemoRole role;
 
   @Column(nullable = false)
@@ -79,6 +80,6 @@ public class DemoProfileEntity {
   }
 
   public DemoProfile toDomain() {
-    return new DemoProfile(externalId, customerId, portal, role, name, description);
+    return new DemoProfile(externalId, customerId, portal, role, name, description, Set.of());
   }
 }

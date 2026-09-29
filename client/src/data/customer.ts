@@ -1,20 +1,24 @@
-export type Role =
-  | 'PRIVATE_CUSTOMER'
-  | 'COMPANY_ADMIN'
-  | 'COMPANY_VIEWER'
-  | 'SYSTEM_ADMIN'
+export type Role = 'PRIVATE_CUSTOMER' | 'SYSTEM_ADMIN'
+export type Permission =
+  | 'READ_INFORMATION'
+  | 'APPROVE_CASES'
+  | 'ADD_EMPLOYEES'
+  | 'CHANGE_SALARY'
+  | 'REGISTER_LEAVE_OF_ABSENCE'
+  | 'TERMINATE_EMPLOYMENT'
 export type Portal = 'PRIVATE' | 'COMPANY' | 'SYSTEM'
 export type ProfilePortal = Portal
 export interface Profile {
   id: string
   name: string
-  role: Role
+  role?: Role
   portal: ProfilePortal
   portals?: Portal[]
   description: string
   preview: string
   company?: string
   companies?: string[]
+  permissions?: Permission[]
 }
 export type PrivateOverviewMetricLayout = 'cards' | 'bottom-bar'
 
