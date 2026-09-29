@@ -8,7 +8,11 @@ import type { Permission } from '../data/customer'
 type ProfilePermissions = {
   profileId: string
   name: string
-  companies: Array<{ companyId: string; companyName: string; permissions: Permission[] }>
+  companies: Array<{
+    companyId: string
+    companyName: string
+    permissions: Permission[]
+  }>
 }
 
 const props = defineProps<{
@@ -22,7 +26,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  savePermissions: [{ profileId: string; companyId: string; permissions: Permission[] }]
+  savePermissions: [
+    { profileId: string; companyId: string; permissions: Permission[] },
+  ]
 }>()
 
 const allPermissions: Permission[] = [
@@ -54,10 +60,35 @@ const permissionAbbr: Record<Permission, string> = {
 
 const presetList = [
   { key: 'full', label: 'Full behörighet', permissions: allPermissions },
-  { key: 'readonly', label: 'Läsbehörighet', permissions: ['READ_INFORMATION'] as Permission[] },
-  { key: 'manager', label: 'Chef', permissions: ['READ_INFORMATION', 'APPROVE_CASES', 'ADD_EMPLOYEES'] as Permission[] },
-  { key: 'hr', label: 'HR', permissions: ['READ_INFORMATION', 'ADD_EMPLOYEES', 'REGISTER_LEAVE_OF_ABSENCE', 'TERMINATE_EMPLOYMENT'] as Permission[] },
-  { key: 'finance', label: 'Lön', permissions: ['READ_INFORMATION', 'CHANGE_SALARY'] as Permission[] },
+  {
+    key: 'readonly',
+    label: 'Läsbehörighet',
+    permissions: ['READ_INFORMATION'] as Permission[],
+  },
+  {
+    key: 'manager',
+    label: 'Chef',
+    permissions: [
+      'READ_INFORMATION',
+      'APPROVE_CASES',
+      'ADD_EMPLOYEES',
+    ] as Permission[],
+  },
+  {
+    key: 'hr',
+    label: 'HR',
+    permissions: [
+      'READ_INFORMATION',
+      'ADD_EMPLOYEES',
+      'REGISTER_LEAVE_OF_ABSENCE',
+      'TERMINATE_EMPLOYMENT',
+    ] as Permission[],
+  },
+  {
+    key: 'finance',
+    label: 'Lön',
+    permissions: ['READ_INFORMATION', 'CHANGE_SALARY'] as Permission[],
+  },
   { key: 'clear', label: 'Rensa', permissions: [] as Permission[] },
 ]
 
@@ -70,6 +101,15 @@ const selectedIds = ref<string[]>([])
 
 // Side panel state
 const editingProfileId = ref<string | null>(null)
+const selectedCompanyId = ref<string | null>(null)
+
+const openEditor = (profileId: string): void => {
+  if (editingProfileId.value !== profileId) {
+    editingProfileId.value = profileId
+    const profile = props.companyProfiles.find((p) => p.profileId === profileId)
+    selectedCompanyId.value = profile?.companies[0]?.companyId ?? null
+  }
+}
 
 const filteredProfiles = computed(() => {
   let result = props.companyProfiles
@@ -89,7 +129,18 @@ const filteredProfiles = computed(() => {
 })
 
 const editingProfile = computed(
-  () => props.companyProfiles.find((p) => p.profileId === editingProfileId.value) ?? null,
+  () =>
+    props.companyProfiles.find((p) => p.profileId === editingProfileId.value) ??
+    null,
+)
+
+const activeCompany = computed(
+  () =>
+    editingProfile.value?.companies.find(
+      (c) => c.companyId === selectedCompanyId.value,
+    ) ??
+    editingProfile.value?.companies[0] ??
+    null,
 )
 
 const primaryPermissions = (profile: ProfilePermissions): Permission[] =>
@@ -98,7 +149,9 @@ const primaryPermissions = (profile: ProfilePermissions): Permission[] =>
 const allFilteredSelected = computed(
   () =>
     filteredProfiles.value.length > 0 &&
-    filteredProfiles.value.every((p) => selectedIds.value.includes(p.profileId)),
+    filteredProfiles.value.every((p) =>
+      selectedIds.value.includes(p.profileId),
+    ),
 )
 
 const someFilteredSelected = computed(() =>
@@ -123,13 +176,21 @@ const toggleAll = (): void => {
   }
 }
 
-const togglePermission = (profile: ProfilePermissions, companyId: string, permission: Permission): void => {
+const togglePermission = (
+  profile: ProfilePermissions,
+  companyId: string,
+  permission: Permission,
+): void => {
   const company = profile.companies.find((c) => c.companyId === companyId)
   if (!company) return
   const updated = company.permissions.includes(permission)
     ? company.permissions.filter((p) => p !== permission)
     : [...company.permissions, permission]
-  emit('savePermissions', { profileId: profile.profileId, companyId, permissions: updated })
+  emit('savePermissions', {
+    profileId: profile.profileId,
+    companyId,
+    permissions: updated,
+  })
 }
 
 const applyBulkPreset = (permissions: Permission[]): void => {
@@ -137,20 +198,25 @@ const applyBulkPreset = (permissions: Permission[]): void => {
     const profile = props.companyProfiles.find((p) => p.profileId === profileId)
     if (!profile) continue
     for (const company of profile.companies) {
-      emit('savePermissions', { profileId, companyId: company.companyId, permissions: [...permissions] })
+      emit('savePermissions', {
+        profileId,
+        companyId: company.companyId,
+        permissions: [...permissions],
+      })
     }
   }
 }
 
-const applyPresetToEditing = (permissions: Permission[]): void => {
+const applyPresetToCompany = (
+  permissions: Permission[],
+  companyId: string,
+): void => {
   if (!editingProfile.value) return
-  for (const company of editingProfile.value.companies) {
-    emit('savePermissions', {
-      profileId: editingProfile.value.profileId,
-      companyId: company.companyId,
-      permissions: [...permissions],
-    })
-  }
+  emit('savePermissions', {
+    profileId: editingProfile.value.profileId,
+    companyId,
+    permissions: [...permissions],
+  })
 }
 </script>
 
@@ -164,7 +230,9 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
       <EmptyState
         v-if="companyProfiles.length === 0"
         :title="t('Inga företagsanvändare')"
-        :description="t('Det finns inga företagsanvändare i den här kundvarianten.')"
+        :description="
+          t('Det finns inga företagsanvändare i den här kundvarianten.')
+        "
       />
 
       <template v-else>
@@ -200,11 +268,16 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
               {{ preset.label }}
             </button>
           </div>
-          <button class="deselect-btn" @click="selectedIds = []">Avmarkera</button>
+          <button class="deselect-btn" @click="selectedIds = []">
+            Avmarkera
+          </button>
         </div>
 
         <!-- Workspace -->
-        <div class="workspace" :class="{ 'has-panel': editingProfileId !== null }">
+        <div
+          class="workspace"
+          :class="{ 'has-panel': editingProfileId !== null }"
+        >
           <!-- Table -->
           <div class="table-section">
             <table class="user-table">
@@ -214,7 +287,9 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
                     <input
                       type="checkbox"
                       :checked="allFilteredSelected"
-                      :indeterminate="someFilteredSelected && !allFilteredSelected"
+                      :indeterminate="
+                        someFilteredSelected && !allFilteredSelected
+                      "
                       @change="toggleAll"
                     />
                   </th>
@@ -233,7 +308,7 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
                     'is-selected': selectedIds.includes(profile.profileId),
                     'is-editing': editingProfileId === profile.profileId,
                   }"
-                  @click="editingProfileId = profile.profileId"
+                  @click="openEditor(profile.profileId)"
                 >
                   <td class="col-check" @click.stop>
                     <input
@@ -251,7 +326,9 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
                       v-for="perm in allPermissions"
                       :key="perm"
                       class="perm-dot"
-                      :class="{ active: primaryPermissions(profile).includes(perm) }"
+                      :class="{
+                        active: primaryPermissions(profile).includes(perm),
+                      }"
                       :title="permissionLabel[perm]"
                     >
                       {{ permissionAbbr[perm] }}
@@ -260,7 +337,7 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
                   <td class="col-action">
                     <button
                       class="edit-btn"
-                      @click.stop="editingProfileId = profile.profileId"
+                      @click.stop="openEditor(profile.profileId)"
                     >
                       Redigera
                     </button>
@@ -277,50 +354,71 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
           <!-- Side panel -->
           <aside v-if="editingProfile" class="editor-panel">
             <div class="editor-header">
-              <div class="editor-identity">
-                <strong class="editor-name">{{ editingProfile.name }}</strong>
-                <span class="editor-companies-label">
-                  {{ editingProfile.companies.map((c) => c.companyName).join(', ') }}
-                </span>
-              </div>
-              <button class="close-btn" aria-label="Stäng" @click="editingProfileId = null">
+              <strong class="editor-name">{{ editingProfile.name }}</strong>
+              <button
+                class="close-btn"
+                aria-label="Stäng"
+                @click="editingProfileId = null"
+              >
                 ✕
               </button>
             </div>
 
-            <div class="editor-presets">
-              <span class="presets-label">Snabbval:</span>
+            <!-- Company tab switcher (only shown when >1 company) -->
+            <div
+              v-if="editingProfile.companies.length > 1"
+              class="company-tabs"
+            >
               <button
-                v-for="preset in presetList"
-                :key="preset.key"
-                class="preset-chip"
-                @click="applyPresetToEditing(preset.permissions)"
+                v-for="company in editingProfile.companies"
+                :key="company.companyId"
+                class="company-tab"
+                :class="{
+                  'is-active': company.companyId === activeCompany?.companyId,
+                }"
+                @click="selectedCompanyId = company.companyId"
               >
-                {{ preset.label }}
+                {{ company.companyName }}
               </button>
             </div>
 
-            <div class="editor-companies-list">
-              <div
-                v-for="company in editingProfile.companies"
-                :key="company.companyId"
-                class="editor-company"
-              >
-                <h4 class="editor-company-name">{{ company.companyName }}</h4>
-                <div class="editor-permission-list">
-                  <label
-                    v-for="perm in allPermissions"
-                    :key="perm"
-                    class="editor-permission-row"
-                  >
-                    <input
-                      type="checkbox"
-                      :checked="company.permissions.includes(perm)"
-                      @change="togglePermission(editingProfile, company.companyId, perm)"
-                    />
-                    {{ permissionLabel[perm] }}
-                  </label>
-                </div>
+            <!-- Active company permissions -->
+            <div v-if="activeCompany" class="editor-company-body">
+              <div class="editor-presets">
+                <span class="presets-label">Snabbval:</span>
+                <button
+                  v-for="preset in presetList"
+                  :key="preset.key"
+                  class="preset-chip"
+                  @click="
+                    applyPresetToCompany(
+                      preset.permissions,
+                      activeCompany.companyId,
+                    )
+                  "
+                >
+                  {{ preset.label }}
+                </button>
+              </div>
+              <div class="editor-permission-list">
+                <label
+                  v-for="perm in allPermissions"
+                  :key="perm"
+                  class="editor-permission-row"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="activeCompany.permissions.includes(perm)"
+                    @change="
+                      togglePermission(
+                        editingProfile,
+                        activeCompany.companyId,
+                        perm,
+                      )
+                    "
+                  />
+                  {{ permissionLabel[perm] }}
+                </label>
               </div>
             </div>
           </aside>
@@ -365,7 +463,8 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
 .search-input:focus {
   outline: none;
   border-color: var(--accent, #0057b7);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #0057b7) 20%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--accent, #0057b7) 20%, transparent);
 }
 
 .filter-select {
@@ -529,7 +628,9 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
   margin-right: 3px;
   background: var(--border);
   color: var(--muted);
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 
 .perm-dot.active {
@@ -577,19 +678,11 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
 
 .editor-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
-}
-
-.editor-identity {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
 }
 
 .editor-name {
@@ -627,10 +720,8 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
-  background: var(--surface);
+  margin-bottom: 10px;
 }
 
 .presets-label {
@@ -656,27 +747,51 @@ const applyPresetToEditing = (permissions: Permission[]): void => {
   color: var(--accent, #0057b7);
 }
 
-.editor-companies-list {
-  padding: 16px;
+/* Company tab switcher */
+.company-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.company-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.company-tab {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.company-tab:hover {
+  color: var(--ink);
+}
+
+.company-tab.is-active {
+  color: var(--accent, #0057b7);
+  border-bottom-color: var(--accent, #0057b7);
+  font-weight: 600;
+}
+
+.editor-company-body {
+  padding: 16px;
   max-height: 60vh;
   overflow-y: auto;
-}
-
-.editor-company + .editor-company {
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
-}
-
-.editor-company-name {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0 0 10px;
 }
 
 .editor-permission-list {
