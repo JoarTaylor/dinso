@@ -55,7 +55,7 @@ const labels = computed(() => ({
 }))
 const selectedProfile = computed(
   () =>
-    customer.profiles.find((item) => item.id === selectedProfileId.value) ??
+    session.profiles.find((item) => item.id === selectedProfileId.value) ??
     null,
 )
 const portals = computed(() => [
@@ -85,7 +85,7 @@ const portals = computed(() => [
   },
 ])
 const loginProfiles = computed(() =>
-  customer.profiles.map((item) => ({
+  session.profiles.map((item) => ({
     ...item,
     description: t(item.description),
     preview: t(item.preview),

@@ -36,6 +36,15 @@ const readStoredSession = (): StoredSession | null => {
 }
 
 export const useDemoSessionStore = defineStore('demo-session', () => {
+  const profiles = ref<Profile[]>(
+    customer.profiles.map((p) => ({ ...p, permissions: [...(p.permissions ?? [])] })),
+  )
+
+  const updateProfilePermissions = (profileId: string, permissions: Permission[]): void => {
+    const profile = profiles.value.find((p) => p.id === profileId)
+    if (profile) profile.permissions = permissions
+  }
+
   const storedSession = readStoredSession()
   const storedProfile = storedSession
     ? (customer.profiles.find((item) => item.id === storedSession.profileId) ?? null)
@@ -178,6 +187,8 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
   }
 
   return {
+    profiles,
+    updateProfilePermissions,
     profile,
     selectedPortal,
     sessionToken,

@@ -34,8 +34,12 @@ För att stödja mer skalbar ui körde jag denna prompt:
 
 > "i want to improve the UI where the system_admin changes
 > permissions, we should be able to easily change the  
->  permissions of 100 employees, mock that data, and then mock  
->  100 different permissions "
+>  permissions of 100 employees and
+> 100 different permissions for example"
+
+sen promptade jag fram att vi ska kunna sätta "presets" på permissions, dvs de enkla förval som "chef" etc
+
+märkte av en bug att statet på användarna uppdateras inte när system-admin ändra behörigheter - fixat
 
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
 
