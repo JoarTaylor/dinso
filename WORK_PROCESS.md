@@ -47,6 +47,15 @@ nästa steg är att jag vill att vardera medarbetare ska kunna se vilka behörig
 
 > "i want each person who has companies to see their own permissions in the specific company mode"
 
+märker att på många ställen så kan man "försöka" göra grejer man inte har behörighet till
+
+> "look over the actions in the client where the permissions allow  
+> actions or not, some places should just be disabled because the  
+> user lacks permissions, for example "lägg till medarbetare" goes  
+> to "översikt" is the user lacks salary permission
+
+> do an audit"
+
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
 
 - Motivera dina val av lösningar till uppgifterna.

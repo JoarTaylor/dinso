@@ -19,7 +19,10 @@ const props = defineProps<{
   title: string
   description: string
   employees: Employee[]
-  canManage: boolean
+  canAddEmployees: boolean
+  canChangeSalary: boolean
+  canRegisterLeave: boolean
+  canTerminateEmployment: boolean
   search: string
   selectedEmployee: Employee | null
   employeeAction: 'salary' | 'leave' | 'end'
@@ -73,12 +76,16 @@ const endDateModel = computed({
   get: () => props.endDate,
   set: (value) => emit('update:endDate', value),
 })
+const canManageEmployee = computed(
+  () => props.canChangeSalary || props.canRegisterLeave || props.canTerminateEmployment,
+)
+
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'name', label: props.t('Namn') },
   { key: 'plan', label: props.t('Plan') },
   { key: 'salary', label: props.t('Lön'), align: 'right' },
   { key: 'status', label: props.t('Status') },
-  ...(props.canManage
+  ...(canManageEmployee.value
     ? [{ key: 'actions', label: props.t('Åtgärder'), align: 'right' as const }]
     : []),
 ])
@@ -95,7 +102,7 @@ async function manageEmployee(employee: Employee) {
 <template>
   <section>
     <PageHeader :title="title" :description="description">
-      <template v-if="canManage" #action>
+      <template v-if="canAddEmployees" #action>
         <button class="button" @click="emit('add')">
           {{ t('Lägg till medarbetare') }}
         </button>
@@ -153,7 +160,7 @@ async function manageEmployee(employee: Employee) {
     </Panel>
 
     <div
-      v-if="selectedEmployee && canManage"
+      v-if="selectedEmployee && canManageEmployee"
       ref="employeeActionPanel"
     >
       <Panel
@@ -171,9 +178,9 @@ async function manageEmployee(employee: Employee) {
         <label class="field">
           <span>{{ t('Åtgärd') }}</span>
           <select v-model="actionModel">
-            <option value="salary">{{ t('Ändra lön') }}</option>
-            <option value="leave">{{ t('Registrera tjänstledighet') }}</option>
-            <option value="end">{{ t('Avsluta anställning') }}</option>
+            <option v-if="canChangeSalary" value="salary">{{ t('Ändra lön') }}</option>
+            <option v-if="canRegisterLeave" value="leave">{{ t('Registrera tjänstledighet') }}</option>
+            <option v-if="canTerminateEmployment" value="end">{{ t('Avsluta anställning') }}</option>
           </select>
         </label>
         <label v-if="employeeAction === 'salary'" class="field">

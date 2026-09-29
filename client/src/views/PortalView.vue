@@ -200,6 +200,10 @@ const loadSystemProfiles = async (): Promise<void> => {
     console.log(e)
   }
 }
+const firstEmployeeAction = computed<'salary' | 'leave' | 'end'>(() =>
+  session.canChangeSalary ? 'salary' : session.canRegisterLeave ? 'leave' : 'end',
+)
+
 const navigate = (target: 'insurance' | 'cases'): void => {
   void router.push({
     name: target === 'insurance' ? 'private-insurance' : 'company-cases',
@@ -277,7 +281,10 @@ const finishEmployee = async (draft: {
     :title="t('Medarbetare')"
     :description="employeeDescription"
     :employees="portal.filteredEmployees"
-    :can-manage="session.canManageCompany"
+    :can-add-employees="session.canAddEmployees"
+    :can-change-salary="session.canChangeSalary"
+    :can-register-leave="session.canRegisterLeave"
+    :can-terminate-employment="session.canTerminateEmployment"
     :search="portal.search"
     :selected-employee="portal.selectedEmployee"
     :employee-action="portal.employeeAction"
@@ -296,7 +303,7 @@ const finishEmployee = async (draft: {
     @update:leave-reason="portal.leaveReason = $event"
     @update:leave-until="portal.leaveUntil = $event"
     @update:end-date="portal.endDate = $event"
-    @manage="portal.manageEmployee"
+    @manage="(emp) => { portal.manageEmployee(emp); portal.employeeAction = firstEmployeeAction }"
     @cancel="portal.selectedEmployee = null"
     @add="router.push({ name: 'company-add-employee' })"
     @save="portal.saveEmployee"
