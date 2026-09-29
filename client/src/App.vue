@@ -272,6 +272,33 @@ watch(selectedProfileId, () => {
     />
     <main id="mainContent" class="shell" tabindex="-1">
       <PortalNav :items="nav" :active="activePage" @select="selectPage" />
+      <div v-if="session.isCompany && session.activePermissions.length > 0" class="permission-bar">
+        <span class="permission-bar__label">{{ t('Dina behörigheter') }}:</span>
+        <span
+          v-if="session.hasPermission('READ_INFORMATION')"
+          class="permission-bar__chip"
+        >{{ t('Läs information') }}</span>
+        <span
+          v-if="session.hasPermission('APPROVE_CASES')"
+          class="permission-bar__chip"
+        >{{ t('Godkänn ärenden') }}</span>
+        <span
+          v-if="session.hasPermission('ADD_EMPLOYEES')"
+          class="permission-bar__chip"
+        >{{ t('Lägg till medarbetare') }}</span>
+        <span
+          v-if="session.hasPermission('CHANGE_SALARY')"
+          class="permission-bar__chip"
+        >{{ t('Ändra lön') }}</span>
+        <span
+          v-if="session.hasPermission('REGISTER_LEAVE_OF_ABSENCE')"
+          class="permission-bar__chip"
+        >{{ t('Tjänstledighet') }}</span>
+        <span
+          v-if="session.hasPermission('TERMINATE_EMPLOYMENT')"
+          class="permission-bar__chip"
+        >{{ t('Avsluta anställning') }}</span>
+      </div>
       <RouterView />
       <div v-if="customer.locales.length > 1" class="language-switch">
         <label for="language">{{ t('Språk') }}</label>
@@ -289,6 +316,31 @@ watch(selectedProfileId, () => {
   max-width: var(--shell-max-width, 1440px);
   margin: auto;
   padding: var(--space-shell-padding, 32px 24px 72px);
+}
+
+.permission-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.permission-bar__label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.permission-bar__chip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--accent, #0057b7);
+  background: color-mix(in srgb, var(--accent, #0057b7) 8%, transparent);
+  white-space: nowrap;
 }
 
 .language-switch {

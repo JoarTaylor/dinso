@@ -41,6 +41,12 @@ sen promptade jag fram att vi ska kunna sätta "presets" på permissions, dvs de
 
 märkte av en bug att statet på användarna uppdateras inte när system-admin ändra behörigheter - fixat
 
+gjorde hanteringen av behörigheter mer skalbar, med en switch för att välja vilket företag
+
+nästa steg är att jag vill att vardera medarbetare ska kunna se vilka behörigheter dem har, för transparans och lättare debugging
+
+> "i want each person who has companies to see their own permissions in the specific company mode"
+
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
 
 - Motivera dina val av lösningar till uppgifterna.
