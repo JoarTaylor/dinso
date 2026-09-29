@@ -30,6 +30,13 @@ SYSTEM_ADMIN
 }
 ```
 
+För att stödja mer skalbar ui körde jag denna prompt:
+
+> "i want to improve the UI where the system_admin changes
+> permissions, we should be able to easily change the  
+>  permissions of 100 employees, mock that data, and then mock  
+>  100 different permissions "
+
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
 
 - Motivera dina val av lösningar till uppgifterna.
