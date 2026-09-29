@@ -69,7 +69,8 @@ const overviewDescription = computed(() =>
   ),
 )
 const overviewBottomMetrics = computed(
-  () => !isCompany.value && customer.privateOverviewMetricLayout === 'bottom-bar',
+  () =>
+    !isCompany.value && customer.privateOverviewMetricLayout === 'bottom-bar',
 )
 const overviewRows = computed(() =>
   isCompany.value ? portal.cases.slice(0, 5) : portal.insurance,
@@ -109,7 +110,11 @@ const apiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? ''
 type ProfilePermissions = {
   profileId: string
   name: string
-  companies: Array<{ companyId: string; companyName: string; permissions: Permission[] }>
+  companies: Array<{
+    companyId: string
+    companyName: string
+    permissions: Permission[]
+  }>
 }
 
 const companyProfiles = ref<ProfilePermissions[]>(
@@ -134,7 +139,9 @@ const companyProfiles = ref<ProfilePermissions[]>(
 const companyAdmins = computed(() =>
   companyProfiles.value.map((item) => ({
     name: item.name,
-    companies: item.companies.map((c) => c.companyName).join(', ') || t('Inga företag kopplade'),
+    companies:
+      item.companies.map((c) => c.companyName).join(', ') ||
+      t('Inga företag kopplade'),
   })),
 )
 
@@ -172,7 +179,11 @@ const loadSystemProfiles = async (): Promise<void> => {
     const data = (await response.json()) as Array<{
       profileId: string
       name: string
-      companies: Array<{ companyId: string; companyName: string; permissions: string[] }>
+      companies: Array<{
+        companyId: string
+        companyName: string
+        permissions: string[]
+      }>
     }>
     companyProfiles.value = data.map((p) => ({
       profileId: p.profileId,
@@ -183,8 +194,8 @@ const loadSystemProfiles = async (): Promise<void> => {
         permissions: c.permissions as Permission[],
       })),
     }))
-  } catch {
-    // silently ignore
+  } catch (e) {
+    console.log(e)
   }
 }
 const navigate = (target: 'insurance' | 'cases'): void => {
@@ -227,7 +238,9 @@ const finishEmployee = async (draft: {
     :rows="companyAdmins"
     :company-profiles="companyProfiles"
     :t="t"
-    @save-permissions="savePermissions($event.profileId, $event.companyId, $event.permissions)"
+    @save-permissions="
+      savePermissions($event.profileId, $event.companyId, $event.permissions)
+    "
   />
   <OverviewView
     v-else-if="page === 'overview'"

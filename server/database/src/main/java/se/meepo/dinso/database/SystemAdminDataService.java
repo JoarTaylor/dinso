@@ -40,7 +40,7 @@ public class SystemAdminDataService {
                       .map(
                           a ->
                               new CompanyAccess(
-                                  a.getCompany().getId(),
+                                  a.getCompany().getExternalId(),
                                   a.getCompany().getName(),
                                   a.getPermissions()))
                       .toList();

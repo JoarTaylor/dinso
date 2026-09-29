@@ -1,8 +1,9 @@
-import { computed, ref } from 'vue'
-import { defineStore } from 'pinia'
-import customer from '@customer/config'
-import { activeLocale, translate } from '../i18n'
-import { useDemoSessionStore } from './demoSession'
+import customer from '@customer/config';
+import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
+import { Permission } from '../data/customer';
+import { activeLocale, translate } from '../i18n';
+import { useDemoSessionStore } from './demoSession';
 
 type Employee = {
   id?: string
@@ -31,7 +32,7 @@ type PrivateOverview = {
 type InsuranceDetail = {
   fundHoldings: { fundName: string; allocationPercent: string }[]
 }
-type Company = { id: string; name: string; permissions: string[] }
+type Company = { id: string; name: string; permissions: Permission[] }
 type CompanyEmployment = {
   id: string
   personName: string
