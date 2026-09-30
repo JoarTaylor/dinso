@@ -56,23 +56,25 @@ märker att på många ställen så kan man "försöka" göra grejer man inte ha
 
 > do an audit"
 
+claude skapade en "bulk" permission, men gällar för alla företag, vi vill ha "per company" så jag tar bort denna
+
+Vad är "läs information"? Antar nu att man ej nu kan läsa "dokument" om man inte har läsbehörighet
+Lösning: om man ej har read på en arbetsgivare, denna ska bli hidden för användaren.
+och read på minst 1 för att ens kunna logga in, annars dold "välj portal" och "logga in"
+nu gör jag detta hidden för användaren, ett val jag gör helt enkelt
+
 # Vad jag hade ändrat ifall jag hade mer tid
 
     1. Hämtat profiler från backend, just nu hårdkodat i frontend
     2. Ha flera portaler på en användare
-    3. Vad är "läs information"? Antar nu att man ej nu kan läsa "dokument" om man inte har läsbehörighet
-        Lösning: om man ej har read på en arbetsgivare, denna ska bli hidden för användaren.
-        och read på minst 1 för att ens kunna logga in, annars dold "välj portal" och "logga in"
-        nu gör jag detta hidden för användaren, ett val jag gör helt enkelt
-
-    claude skapade en "bulk" permission, men gällar för alla företag, vi vill ha "per company" så jag tar bort denna
-    4. FIXA MOBIL- fixat permissions toggle viewn iaf
-    5.
-
-
-    la till en skill för frontend, om mer tid även lägga till en skill för backend
+    3. FIXA MOBIL- fixat permissions toggle viewn iaf
+    4. ipad-storlek responsivitet
+    5. la till en skill för frontend, om mer tid även lägga till en skill för backend
 
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
+
+tittade mycket på excalidraw, och sen överlag resonerade för mig själv vad som förhoppningsvis skulle fungera bäst
+i ett verkligt scenario.
 
 - Motivera dina val av lösningar till uppgifterna.
 
