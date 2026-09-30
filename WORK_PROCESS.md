@@ -66,8 +66,11 @@ märker att på många ställen så kan man "försöka" göra grejer man inte ha
         nu gör jag detta hidden för användaren, ett val jag gör helt enkelt
 
     claude skapade en "bulk" permission, men gällar för alla företag, vi vill ha "per company" så jag tar bort denna
-    4. FIXA MOBIL
+    4. FIXA MOBIL- fixat permissions toggle viewn iaf
     5.
+
+
+    la till en skill för frontend, om mer tid även lägga till en skill för backend
 
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
 
