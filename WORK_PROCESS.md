@@ -62,7 +62,8 @@ märker att på många ställen så kan man "försöka" göra grejer man inte ha
     2. Ha flera portaler på en användare
     3. Vad är "läs information"? Antar nu att man ej nu kan läsa "dokument" om man inte har läsbehörighet
         Lösning: om man ej har read på en arbetsgivare, denna ska bli hidden för användaren.
-        read på minst 1 för att ens kunna logga in, annars dold "välj portal" och "logga in"
+        och read på minst 1 för att ens kunna logga in, annars dold "välj portal" och "logga in"
+        nu gör jag detta hidden för användaren, ett val jag gör helt enkelt
 
     claude skapade en "bulk" permission, men gällar för alla företag, vi vill ha "per company" så jag tar bort denna
     4. FIXA MOBIL

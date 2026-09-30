@@ -26,6 +26,7 @@ const props = defineProps<{
     profileLabel: string
     chooseProfileFirst: string
     chooseProfile: string
+    noPortalsAvailable: string
     hint: string
     open: string
   }
@@ -97,6 +98,13 @@ const availablePortals = computed(() =>
 
         <div v-if="!selectedProfile" class="profile-placeholder">
           <p>{{ labels.chooseProfileFirst }}</p>
+        </div>
+
+        <div
+          v-else-if="availablePortals.length === 0"
+          class="profile-placeholder"
+        >
+          <p>{{ labels.noPortalsAvailable }}</p>
         </div>
 
         <div

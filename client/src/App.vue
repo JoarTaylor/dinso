@@ -72,8 +72,10 @@ const portals = computed(() => [
     title: t('Företagsportalen'),
     description: t('Administrera medarbetare, avtal och ärenden.'),
     available:
-      selectedProfile.value?.portals?.includes('COMPANY') ??
-      selectedProfile.value?.portal === 'COMPANY',
+      (selectedProfile.value?.portals?.includes('COMPANY') ??
+        selectedProfile.value?.portal === 'COMPANY') &&
+      (selectedProfile.value?.permissions?.includes('READ_INFORMATION') ??
+        false),
   },
   {
     id: 'SYSTEM' as Portal,
@@ -103,6 +105,7 @@ const loginLabels = computed(() => ({
   profileLabel: t('Person'),
   chooseProfileFirst: t('Välj en person för att se tillgängliga portaler.'),
   chooseProfile: t('Välj person'),
+  noPortalsAvailable: t('Den här personen har inga tillgängliga portaler.'),
   hint: t('Välj en person och sedan en portal för att fortsätta.'),
   open: labels.value.open,
 }))
@@ -148,7 +151,7 @@ const roleLabel = (item: Profile): string =>
     item.role === 'SYSTEM_ADMIN'
       ? 'Systemadministratör'
       : item.portal === 'COMPANY'
-        ? `${item.permissions.length} behörigheter`
+        ? 'Företagskund'
         : 'Privatkund',
   )
 const selectPage = (page: string): void => {
@@ -272,32 +275,47 @@ watch(selectedProfileId, () => {
     />
     <main id="mainContent" class="shell" tabindex="-1">
       <PortalNav :items="nav" :active="activePage" @select="selectPage" />
-      <div v-if="session.isCompany && session.activePermissions.length > 0" class="permission-bar">
+      <div
+        v-if="session.isCompany && session.activePermissions.length > 0"
+        class="permission-bar"
+      >
         <span class="permission-bar__label">{{ t('Dina behörigheter') }}:</span>
         <span
           v-if="session.hasPermission('READ_INFORMATION')"
           class="permission-bar__chip"
-        >{{ t('Läs information') }}</span>
+        >
+          {{ t('Läs information') }}
+        </span>
         <span
           v-if="session.hasPermission('APPROVE_CASES')"
           class="permission-bar__chip"
-        >{{ t('Godkänn ärenden') }}</span>
+        >
+          {{ t('Godkänn ärenden') }}
+        </span>
         <span
           v-if="session.hasPermission('ADD_EMPLOYEES')"
           class="permission-bar__chip"
-        >{{ t('Lägg till medarbetare') }}</span>
+        >
+          {{ t('Lägg till medarbetare') }}
+        </span>
         <span
           v-if="session.hasPermission('CHANGE_SALARY')"
           class="permission-bar__chip"
-        >{{ t('Ändra lön') }}</span>
+        >
+          {{ t('Ändra lön') }}
+        </span>
         <span
           v-if="session.hasPermission('REGISTER_LEAVE_OF_ABSENCE')"
           class="permission-bar__chip"
-        >{{ t('Tjänstledighet') }}</span>
+        >
+          {{ t('Tjänstledighet') }}
+        </span>
         <span
           v-if="session.hasPermission('TERMINATE_EMPLOYMENT')"
           class="permission-bar__chip"
-        >{{ t('Avsluta anställning') }}</span>
+        >
+          {{ t('Avsluta anställning') }}
+        </span>
       </div>
       <RouterView />
       <div v-if="customer.locales.length > 1" class="language-switch">

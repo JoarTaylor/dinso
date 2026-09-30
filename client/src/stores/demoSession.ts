@@ -41,8 +41,8 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
   )
 
   const updateProfilePermissions = (profileId: string, permissions: Permission[]): void => {
-    const profile = profiles.value.find((p) => p.id === profileId)
-    if (profile) profile.permissions = permissions
+    const index = profiles.value.findIndex((p) => p.id === profileId)
+    if (index !== -1) profiles.value[index] = { ...profiles.value[index], permissions }
   }
 
   const storedSession = readStoredSession()
@@ -94,10 +94,22 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
   )
   const isCompany = computed<boolean>(() => activePortal.value === 'COMPANY')
 
+  const availableCompanies = computed<Company[]>(() => {
+    const all =
+      companies.value.length > 0
+        ? companies.value
+        : (profile.value?.companies ?? []).map((name) => ({
+            id: name,
+            name,
+            permissions: profile.value?.permissions ?? [],
+          }))
+    return all.filter((c) => c.permissions.includes('READ_INFORMATION'))
+  })
+
   const activeCompany = computed<Company | null>(
     () =>
-      companies.value.find((c) => c.id === companyId.value) ??
-      companies.value[0] ??
+      availableCompanies.value.find((c) => c.id === companyId.value) ??
+      availableCompanies.value[0] ??
       null,
   )
 
@@ -124,16 +136,6 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
   const canChangeSalary = computed<boolean>(() => hasPermission('CHANGE_SALARY'))
   const canRegisterLeave = computed<boolean>(() => hasPermission('REGISTER_LEAVE_OF_ABSENCE'))
   const canTerminateEmployment = computed<boolean>(() => hasPermission('TERMINATE_EMPLOYMENT'))
-
-  const availableCompanies = computed<Company[]>(() =>
-    companies.value.length > 0
-      ? companies.value
-      : (profile.value?.companies ?? []).map((name) => ({
-          id: name,
-          name,
-          permissions: profile.value?.permissions ?? [],
-        })),
-  )
   const selectedCompanyName = computed<string>(
     () => companyName.value || profile.value?.company || '',
   )
