@@ -668,4 +668,80 @@ const applyPresetToCompany = (
   cursor: pointer;
   accent-color: var(--accent, #0057b7);
 }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .result-count {
+    text-align: right;
+  }
+
+  /* Stack editor below table instead of side-by-side */
+  .workspace,
+  .workspace.has-panel {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Editor panel full-width, not sticky */
+  .editor-panel {
+    width: 100%;
+    position: static;
+  }
+
+  /* Hide companies and badges columns — too cramped */
+  .col-companies-h,
+  .col-companies,
+  .col-badges-h,
+  .col-badges {
+    display: none;
+  }
+
+  .col-name {
+    font-size: 0.85rem;
+  }
+
+  .edit-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  /* Bigger touch targets for permission checkboxes */
+  .editor-permission-row {
+    padding: 6px 0;
+    font-size: 0.9rem;
+  }
+
+  .editor-permission-row input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Preset chips wrap nicely */
+  .editor-presets {
+    gap: 8px;
+  }
+
+  .preset-chip {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .editor-company-body {
+    max-height: none;
+  }
+}
 </style>
