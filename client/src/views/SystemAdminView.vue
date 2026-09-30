@@ -96,9 +96,6 @@ const presetList = [
 const search = ref('')
 const permissionFilter = ref<Permission | ''>('')
 
-// Selection state
-const selectedIds = ref<string[]>([])
-
 // Side panel state
 const editingProfileId = ref<string | null>(null)
 const selectedCompanyId = ref<string | null>(null)
@@ -146,36 +143,6 @@ const activeCompany = computed(
 const primaryPermissions = (profile: ProfilePermissions): Permission[] =>
   profile.companies[0]?.permissions ?? []
 
-const allFilteredSelected = computed(
-  () =>
-    filteredProfiles.value.length > 0 &&
-    filteredProfiles.value.every((p) =>
-      selectedIds.value.includes(p.profileId),
-    ),
-)
-
-const someFilteredSelected = computed(() =>
-  filteredProfiles.value.some((p) => selectedIds.value.includes(p.profileId)),
-)
-
-const toggleSelect = (profileId: string): void => {
-  if (selectedIds.value.includes(profileId)) {
-    selectedIds.value = selectedIds.value.filter((id) => id !== profileId)
-  } else {
-    selectedIds.value = [...selectedIds.value, profileId]
-  }
-}
-
-const toggleAll = (): void => {
-  if (allFilteredSelected.value) {
-    const visibleIds = new Set(filteredProfiles.value.map((p) => p.profileId))
-    selectedIds.value = selectedIds.value.filter((id) => !visibleIds.has(id))
-  } else {
-    const newIds = filteredProfiles.value.map((p) => p.profileId)
-    selectedIds.value = [...new Set([...selectedIds.value, ...newIds])]
-  }
-}
-
 const togglePermission = (
   profile: ProfilePermissions,
   companyId: string,
@@ -191,20 +158,6 @@ const togglePermission = (
     companyId,
     permissions: updated,
   })
-}
-
-const applyBulkPreset = (permissions: Permission[]): void => {
-  for (const profileId of selectedIds.value) {
-    const profile = props.companyProfiles.find((p) => p.profileId === profileId)
-    if (!profile) continue
-    for (const company of profile.companies) {
-      emit('savePermissions', {
-        profileId,
-        companyId: company.companyId,
-        permissions: [...permissions],
-      })
-    }
-  }
 }
 
 const applyPresetToCompany = (
@@ -255,24 +208,6 @@ const applyPresetToCompany = (
           </span>
         </div>
 
-        <!-- Bulk bar -->
-        <div v-if="selectedIds.length > 0" class="bulk-bar">
-          <span class="bulk-count">{{ selectedIds.length }} valda</span>
-          <div class="bulk-presets">
-            <button
-              v-for="preset in presetList"
-              :key="preset.key"
-              class="preset-btn"
-              @click="applyBulkPreset(preset.permissions)"
-            >
-              {{ preset.label }}
-            </button>
-          </div>
-          <button class="deselect-btn" @click="selectedIds = []">
-            Avmarkera
-          </button>
-        </div>
-
         <!-- Workspace -->
         <div
           class="workspace"
@@ -283,16 +218,6 @@ const applyPresetToCompany = (
             <table class="user-table">
               <thead>
                 <tr>
-                  <th class="col-check">
-                    <input
-                      type="checkbox"
-                      :checked="allFilteredSelected"
-                      :indeterminate="
-                        someFilteredSelected && !allFilteredSelected
-                      "
-                      @change="toggleAll"
-                    />
-                  </th>
                   <th class="col-name-h">Namn</th>
                   <th class="col-companies-h">Företag</th>
                   <th class="col-badges-h">Behörigheter</th>
@@ -305,18 +230,10 @@ const applyPresetToCompany = (
                   :key="profile.profileId"
                   class="user-row"
                   :class="{
-                    'is-selected': selectedIds.includes(profile.profileId),
                     'is-editing': editingProfileId === profile.profileId,
                   }"
                   @click="openEditor(profile.profileId)"
                 >
-                  <td class="col-check" @click.stop>
-                    <input
-                      type="checkbox"
-                      :checked="selectedIds.includes(profile.profileId)"
-                      @change="toggleSelect(profile.profileId)"
-                    />
-                  </td>
                   <td class="col-name">{{ profile.name }}</td>
                   <td class="col-companies">
                     {{ profile.companies.map((c) => c.companyName).join(', ') }}
@@ -483,59 +400,6 @@ const applyPresetToCompany = (
   white-space: nowrap;
 }
 
-/* Bulk bar */
-.bulk-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: color-mix(in srgb, var(--accent, #0057b7) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent, #0057b7) 25%, transparent);
-  border-radius: var(--radius-control, 6px);
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.bulk-count {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
-}
-
-.bulk-presets {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  flex: 1;
-}
-
-.preset-btn {
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--surface);
-  font-size: 0.8rem;
-  cursor: pointer;
-  color: var(--ink);
-  transition: background 0.15s;
-}
-
-.preset-btn:hover {
-  background: var(--surface-hover, var(--border));
-}
-
-.deselect-btn {
-  padding: 4px 10px;
-  border: none;
-  background: none;
-  font-size: 0.8rem;
-  color: var(--muted);
-  cursor: pointer;
-  text-decoration: underline;
-  white-space: nowrap;
-}
-
 /* Workspace */
 .workspace {
   display: flex;
@@ -590,18 +454,9 @@ const applyPresetToCompany = (
   background: color-mix(in srgb, var(--accent, #0057b7) 6%, transparent);
 }
 
-.user-table tbody tr.is-selected {
-  background: color-mix(in srgb, var(--accent, #0057b7) 4%, transparent);
-}
-
 .user-table td {
   padding: 9px 10px;
   vertical-align: middle;
-}
-
-.col-check {
-  width: 36px;
-  text-align: center;
 }
 
 .col-name {

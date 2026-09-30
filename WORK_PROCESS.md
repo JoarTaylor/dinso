@@ -21,14 +21,14 @@ bestämde mig för en "per-company" modell, för användare kan rimligen ha olik
 
 vi har kvar 2 roller som vi behöver
 
-När denna logik är på plats så behöver vi GUI'n för att lägga upp behörigheter.
-
 ```java
 public enum DemoRole {
 PRIVATE_CUSTOMER,
 SYSTEM_ADMIN
 }
 ```
+
+När denna logik är på plats så behöver vi GUI'n för att lägga upp behörigheter.
 
 För att stödja mer skalbar ui körde jag denna prompt:
 
@@ -55,6 +55,18 @@ märker att på många ställen så kan man "försöka" göra grejer man inte ha
 > to "översikt" is the user lacks salary permission
 
 > do an audit"
+
+# Vad jag hade ändrat ifall jag hade mer tid
+
+    1. Hämtat profiler från backend, just nu hårdkodat i frontend
+    2. Ha flera portaler på en användare
+    3. Vad är "läs information"? Antar nu att man ej nu kan läsa "dokument" om man inte har läsbehörighet
+        Lösning: om man ej har read på en arbetsgivare, denna ska bli hidden för användaren.
+        read på minst 1 för att ens kunna logga in, annars dold "välj portal" och "logga in"
+
+    claude skapade en "bulk" permission, men gällar för alla företag, vi vill ha "per company" så jag tar bort denna
+    4. FIXA MOBIL
+    5.
 
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
 
