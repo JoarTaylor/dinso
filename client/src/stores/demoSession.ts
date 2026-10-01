@@ -40,9 +40,15 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
     customer.profiles.map((p) => ({ ...p, permissions: [...(p.permissions ?? [])] })),
   )
 
+  const profileCompanies = ref<Record<string, Company[]>>({})
+
   const updateProfilePermissions = (profileId: string, permissions: Permission[]): void => {
     const index = profiles.value.findIndex((p) => p.id === profileId)
     if (index !== -1) profiles.value[index] = { ...profiles.value[index], permissions }
+  }
+
+  const updateProfileCompanies = (profileId: string, items: Company[]): void => {
+    profileCompanies.value[profileId] = items
   }
 
   const storedSession = readStoredSession()
@@ -148,13 +154,19 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
     profile.value = selectedProfile
     selectedPortal.value = portal
     sessionToken.value = token
-    companyId.value = ''
-    companyName.value = selectedProfile.company ?? ''
-    companies.value = (selectedProfile.companies ?? []).map((name) => ({
-      id: name,
-      name,
-      permissions: selectedProfile.permissions ?? [],
-    }))
+    companies.value =
+      profileCompanies.value[selectedProfile.id] ??
+      (selectedProfile.companies ?? []).map((name) => ({
+        id: name,
+        name,
+        permissions: selectedProfile.permissions ?? [],
+      }))
+    const defaultCompany =
+      availableCompanies.value.find(
+        (c) => c.id === selectedProfile.company || c.name === selectedProfile.company,
+      ) ?? availableCompanies.value[0] ?? null
+    companyId.value = defaultCompany?.id ?? ''
+    companyName.value = defaultCompany?.name ?? selectedProfile.company ?? ''
     persist()
   }
 
@@ -191,6 +203,7 @@ export const useDemoSessionStore = defineStore('demo-session', () => {
   return {
     profiles,
     updateProfilePermissions,
+    updateProfileCompanies,
     profile,
     selectedPortal,
     sessionToken,

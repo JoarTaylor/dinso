@@ -154,8 +154,10 @@ const savePermissions = async (
   if (!profile) return
   const company = profile.companies.find((c) => c.companyId === companyId)
   if (company) company.permissions = permissions
-  const allPermissions = [...new Set(profile.companies.flatMap((c) => c.permissions))]
-  session.updateProfilePermissions(profileId, allPermissions)
+  session.updateProfileCompanies(
+    profileId,
+    profile.companies.map((c) => ({ id: c.companyId, name: c.companyName, permissions: c.permissions })),
+  )
   if (useApi && session.sessionToken) {
     await fetch(
       `${apiUrl}/api/system/profiles/${encodeURIComponent(profileId)}/companies/${encodeURIComponent(companyId)}/permissions`,
