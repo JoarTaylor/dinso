@@ -70,6 +70,7 @@ nu gör jag detta hidden för användaren, ett val jag gör helt enkelt
     3. FIXA MOBIL- fixat permissions toggle viewn iaf
     4. ipad-storlek responsivitet
     5. la till en skill för frontend, om mer tid även lägga till en skill för backend
+    6. Paginering för systemadmin vad gäller listan på personer och behörigheter.
 
 # Hur du går tillväga när du avgör vilken lösning som passar uppgiften bäst.
 
@@ -77,5 +78,14 @@ tittade mycket på excalidraw, och sen överlag resonerade för mig själv vad s
 i ett verkligt scenario.
 
 - Motivera dina val av lösningar till uppgifterna.
+  Eftersom uppgiften specade att den ska kunna skala till ca 100personer, så la jag till en sökruta och lättare filter.
+  Jag la behörighetsinställningarna i en modal så det funkar på alla skärmstorlekar.
+  Jag la behörigheterna på anställningsnivå, så det gäller för företag, för att det är så det troligen ser ut i verkligheten.
 
 # Hur du avgör att lösningen är klar för granskning.
+
+- tittar på funktionalitet och kravställning
+- npm run typecheck
+
+Detta upplevde jag räckte för denna uppgift. För att produktionsätta hade jag troligtvis refaktorerat en hel del, även existerande kod.
+Sen har jag gärna haft en peer-review, automatiserade E2E-tester och sådant.
